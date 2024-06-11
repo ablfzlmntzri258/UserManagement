@@ -1,0 +1,79 @@
+@page "/Login"
+@layout Shared.EmptyLayout
+@inject IUserService UserService
+@inject IJSRuntime JS
+@using System.Security.Claims
+@using System.Security.Cryptography
+@using System.Text
+@using FluentValidation
+@using UserManagement.Services
+@using UserManagement.Shared.Interface;
+@using UserManagement.Shared.Models
+@using UserManagement.Helpers
+@using UserManagement.Validators
+@inject IExternalAuthService AuthenticationService
+@inject NavigationManager navigationManager
+@inject IHttpContextAccessor httpContextAccessor
+@inject HashHelper HashHelper
+
+
+
+<div class="d-flex justify-content-center align-items-center h-100">
+    <div class="w-25">
+        <MudForm Model=@(model) @ref="@form" Validation="@(loginValidator.ValidateValue)" ValidationDelay="0">
+            <MudTextField @bind-Value="model.username" For="@(() => model.username)"  Immediate="true"
+                          Label="نام کاربری" Variant="Variant.Outlined"></MudTextField>
+            
+            <MudTextField Class="mt-5" @bind-Value="model.password" For="@(() => model.password)"  Immediate="true"
+                          Label="رمز عبور" Variant="Variant.Outlined" InputType="InputType.Password"></MudTextField>
+            <div class="d-flex justify-content-center">
+                <MudButton Class="mt-5" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">ورود</MudButton>
+            </div>
+        </MudForm>
+    </div>
+</div>
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+
+    MudForm form;
+
+    LoginFluentValidator loginValidator = new LoginFluentValidator();
+
+    public LoginForm model = new LoginForm();
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     navigationManager.NavigateTo("/logincallback", true);
+    // }
+    private async Task Submit()
+    {
+        var principal = new ClaimsPrincipal();
+        await form.Validate();
+        if (form.IsValid)
+        {
+            var result = await AuthenticationService.Login(new UserManagement.Shared.ViewModel.UserVM()
+            {
+                UserName = model.username,
+                Password = HashHelper.CreateSHA512(model.password)
+            });
+            if (result.Item1)
+            {
+                navigationManager.NavigateTo($"/logincallback?token={result.Item2}",true);
+                //httpContextAccessor.HttpContext.Response.Redirect("/logincallback",true,true);
+                // navigationManager.NavigateTo("/login-callback");
+                // navigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                JS.InvokeVoidAsync("alert", "Login Failed!");
+            }
+        
+        }
+    }
+
+    
+    
+
+
+}

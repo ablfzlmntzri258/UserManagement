@@ -1,0 +1,148 @@
+@page "/dashboard/user-management"
+@using UserManagement.Services
+@layout Shared.DashboardLayout
+@using UserManagement.Shared.Models
+@inject ISnackbar Snackbar
+@inject IUserService UserService
+@inject IDialogService DialogService
+
+
+<AuthorizeView Roles="admin" Context="userManagementContext">
+    <Authorized>
+        <div class="mb-5">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowAddDialog">Add User</MudButton>
+        </div>
+        <MudTable Items="@Users" Dense="@dense" Hover="@hover" ReadOnly="@ronly" Filter="new Func<User, bool>(FilterFunc)"
+                  SortLabel="Sort By">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Users</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Id)">Id</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Name)">Name</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.UserName)">UserName</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Email)">Email</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.EmployeeCode)">EmployeeCode</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Permission)">Role</MudTableSortLabel>
+                </MudTh>
+                <MudTh></MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="UserName">@context.UserName</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="EmployeeCode">@context.EmployeeCode</MudTd>
+                <MudTd DataLabel="EmployeeCode">@context.Permission</MudTd>
+                <MudTd Class="p-0" DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => ShowEditDialog(context)">Edit</MudButton></MudTd>
+                <MudTd DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteUser(context.Id)">Delete</MudButton></MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager/>
+            </PagerContent>
+            <EditButtonContent Context="button">
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+            </EditButtonContent>
+        </MudTable>
+    </Authorized>
+    <NotAuthorized>
+        You don't have access to this page!
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code {
+    private List<string> editEvents = new();
+    private bool dense = false;
+    private bool hover = true;
+    private bool ronly = false;
+    private bool blockSwitch = false;
+    private string searchString = "";
+
+    private IEnumerable<User> Users = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Users = await UserService.GetAll();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    }
+    
+
+    private bool FilterFunc(User element)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.UserName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.Id} {element.EmployeeCode}".Contains(searchString))
+            return true;
+        return false;
+    }
+    
+    
+    
+    private async void DeleteUser(int userId)
+    {
+        bool result = await UserService.Delete(userId);
+        if (result)
+        {
+            Users = await UserService.GetAll();
+            StateHasChanged();
+            Snackbar.Add($"User with ID {userId} is deleted successfully", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Deletion failed!", Severity.Error);
+        }
+    }
+
+    
+    DialogOptions dialogOptions = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+
+    private async void ShowAddDialog()
+    {
+        DialogParameters dialogParameters = new DialogParameters();
+        var dialog = await DialogService.ShowAsync<AddDialog>("Add User", dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data != null)
+        {
+            Snackbar.Add("New user has been successfuly added", Severity.Success);
+            Users = await UserService.GetAll();
+            StateHasChanged();
+        }
+    }
+    
+    private async void ShowEditDialog(User user)
+    {
+        DialogParameters dialogParameters = new DialogParameters();
+        dialogParameters.Add("model", user);
+        var dialog = await DialogService.ShowAsync<EditDialog>("Add User", dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data != null)
+        {
+            Snackbar.Add($"User with username \"{user.UserName}\" has been successfuly updated", Severity.Success);
+            Users = await UserService.GetAll();
+            StateHasChanged();
+        }
+    }
+}

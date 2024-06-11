@@ -1,0 +1,141 @@
+@page "/dashboard/financial-management"
+@using UserManagement.Services
+@using UserManagement.Helpers
+@layout Shared.DashboardLayout
+@using UserManagement.Shared.Models
+@inject ISnackbar Snackbar
+@inject IUserService UserService
+@inject IDialogService DialogService
+@inject FileHelper fileHelper
+@inject PDFHelper PDFHelper
+@inject IJSRuntime JsRuntime
+
+
+<AuthorizeView Roles="admin, financial" Context="userManagementContext">
+    <Authorized>
+        <div class="mb-5">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowSingleAddDialog">Add a file</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddDialog">Add files</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddWithDateDialog">Add files for a month</MudButton>
+        </div>
+        <MudTable T="FileModel" Items="@allFiles" Filter="new Func<FileModel, bool>(FilterFunc)"
+                  SortLabel="Sort By">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Users</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="Year" Class="mt-0 mx-5"></MudTextField>
+                <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="Month" Class="mt-0 mx-5"></MudTextField>
+                <MudTextField @bind-Value="EmplyoeeCode" InputType="InputType.Number" Placeholder="Employee Code" Class="mt-0 mx-5"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">Name</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.EmployeeCode)">Employee Code</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">Year</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Month)">Month</MudTableSortLabel>
+                </MudTh>
+                <MudTh></MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Employee Code">@context.EmployeeCode</MudTd>
+                <MudTd DataLabel="Year">@context.Year</MudTd>
+                <MudTd DataLabel="Month">@context.Month</MudTd>
+                <MudTd dir="ltr">
+                    <MudButton OnClick="@(() => ShowPdf(context))" Color="Color.Error">
+                        <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error" />
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+            <EditButtonContent Context="button">
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+            </EditButtonContent>
+        </MudTable>
+    </Authorized>
+    <NotAuthorized>
+        You don't have access to this page!
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code {
+    public int? Year;
+    public int? Month;
+    public int? EmplyoeeCode;
+    List<FileModel> allFiles = new();
+
+    protected override void OnInitialized()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        allFiles = fileHelper.GetFiles();
+    }
+
+
+    private bool FilterFunc(FileModel element)
+    {
+        string year = Year?.ToString() ?? "";
+        string month = Month?.ToString() ?? "";
+        string employeeCode = EmplyoeeCode?.ToString() ?? "";
+        if (element.Year.ToString().Contains(year) &&
+            element.Month.ToString().Contains(month) &&
+            element.EmployeeCode.ToString().Contains(employeeCode)
+        )
+            return true;
+        return false;
+    }
+
+    DialogOptions dialogOptions = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+
+    private async void ShowSingleAddDialog()
+    {
+        DialogParameters dialogParameters = new DialogParameters();
+        var dialog = await DialogService.ShowAsync<SingleFileAddDialog>("Add a new file", dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            Snackbar.Add("File uploaded successfully", Severity.Success);
+            allFiles = fileHelper.GetFiles();
+            StateHasChanged();
+        }
+    }
+    private async void ShowMultipleAddDialog()
+    {
+        DialogParameters dialogParameters = new DialogParameters();
+        var dialog = await DialogService.ShowAsync<MultipleFileAddDialog>("Add files", dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            Snackbar.Add("All Files uploaded successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+    private async void ShowMultipleAddWithDateDialog()
+    {
+        DialogParameters dialogParameters = new DialogParameters();
+        var dialog = await DialogService.ShowAsync<MultipleFileWithDateAddDialog>("Add files for a month", dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            Snackbar.Add("All Files uploaded successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private async void ShowPdf(FileModel file)
+    {
+        PDFHelper.OpenNewTab(JsRuntime ,$"{file.EmployeeCode}\\{file.Year}\\{file.Month}\\{file.Name}");
+    }
+    
+}

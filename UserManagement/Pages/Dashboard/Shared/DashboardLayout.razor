@@ -1,0 +1,70 @@
+@using UserManagement.Shared.Interface
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IExternalAuthService AuthService
+<MudRTLProvider RightToLeft="true">
+    <MudThemeProvider/>
+    <MudDialogProvider/>
+    <MudSnackbarProvider/>
+    <AuthorizeView>
+        <Authorized>
+            <MudLayout>
+                <MudAppBar Elevation="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+                    <MudSpacer/>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="LogOut">LogOut</MudButton>
+                </MudAppBar>
+                <MudDrawer @bind-Open="@open" Elevation="1">
+                    <MudDrawerHeader>
+                        <MudText Typo="Typo.h6">UserManagement</MudText>
+                    </MudDrawerHeader>
+                    <MudNavMenu>
+                        <MudNavLink Match="NavLinkMatch.All" href="/dashboard">Profile</MudNavLink>
+                        @{
+                            if (context.User.IsInRole("admin"))
+                            {
+                                <MudNavLink Match="NavLinkMatch.All" href="/dashboard/user-management">User Management</MudNavLink>
+                            }
+                        }
+                        @{
+                            if (context.User.IsInRole("admin") || context.User.IsInRole("financial"))
+                            {
+                                <MudNavLink Match="NavLinkMatch.All" href="/dashboard/financial-management">Financial</MudNavLink>
+                            }
+                        }
+                    </MudNavMenu>
+                </MudDrawer>
+                <MudMainContent Class="pt-16 px-16">
+                    <MudContainer Class="mt-6">
+                        @Body
+                    </MudContainer>
+                </MudMainContent>
+            </MudLayout>
+        </Authorized>
+        <Authorizing>
+            <div>Loading...</div>
+        </Authorizing>
+        <NotAuthorized>
+            <div>
+                @{ NavigationManager.NavigateTo("login"); }
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudRTLProvider>
+
+
+@code {
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
+
+    private async void LogOut()
+    {
+        await AuthService.LogOut();
+        NavigationManager.NavigateTo("login");
+    }
+
+}

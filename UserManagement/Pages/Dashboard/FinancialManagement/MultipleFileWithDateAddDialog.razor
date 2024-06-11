@@ -1,0 +1,168 @@
+@inject IJSRuntime JS
+@using UserManagement.Services
+@using UserManagement.Shared.Models
+@using UserManagement.Validators
+@using Severity = MudBlazor.Severity
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@inject IWebHostEnvironment WebHostEnvironment
+
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form" Validation="@(ValidationRules.ValidateValue)" ValidationDelay="0">
+            <MudTextField @bind-Value="@(model.Year)"
+                          For="@(() => model.Year)"
+                          Immediate="true"
+                          Label="Year" InputType="InputType.Number" />
+            <MudTextField @bind-Value="@(model.Month)"
+                          For="@(() => model.Month)"
+                          Immediate="true"
+                          Label="Month" InputType="InputType.Number" />
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>" Accept=".pdf" FilesChanged="AddFiles">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               for="@context.Id">
+                        Multiple Files
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
+        </MudForm>
+        @if (files.Count == 0)
+        {
+            <p class="mt-5">No files are added</p>
+        }
+        else
+        {
+            <MudTable Class="mt-5 w-50 mx-auto" T="IBrowserFile" Items="@files" Hover="true" Breakpoint="Breakpoint.Sm">
+                <HeaderContent>
+                    <MudTh>File Name</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Class="w-100" DataLabel="File Name">@context.Name</MudTd>
+                    <MudTd dir="ltr">
+                        <MudButton OnClick="@(() => DeleteFileFromList(context))" Color="Color.Error">
+                            <MudIcon Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Close(false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    MudForm form;
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+    private async void AddFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        List<string> incorrectFileNames = new();
+        var EmployeeCodes = files.Where(file =>
+        {
+            int ParsedInt;
+            return int.TryParse(file.Name.Replace(".pdf",""), out ParsedInt) && ParsedInt > 0;
+        }).Select(file => int.Parse(file.Name.Replace(".pdf",""))).ToList();
+        var checkedEmployeeCodes = await UserService.CheckEmployeeCodes(EmployeeCodes);
+        foreach (var file in files)
+        {
+            int ParsedInt;
+            if (int.TryParse(file.Name.Replace(".pdf", ""), out ParsedInt) && ParsedInt > 0 && checkedEmployeeCodes.Contains(int.Parse(file.Name.Replace(".pdf", ""))))
+            {
+                this.files.Add(file);
+            }
+            else
+            {
+                incorrectFileNames.Add(file.Name);
+            }
+        }
+        StateHasChanged();
+        if (incorrectFileNames.Count > 0)
+            Snackbar.Add("These files could not be added due to their invalid names <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
+    }
+
+
+    private void DeleteFileFromList(IBrowserFile file)
+    {
+        files.Remove(file);
+    }
+    FileModel model = new();
+    private FileModelFluentValidator ValidationRules = new();
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            if (files.Count == 0)
+            {
+                Snackbar.Add("No file is added", Severity.Error);
+
+            }
+            else
+            {
+                foreach (var file in files)
+                {
+                    var directory = $"{WebHostEnvironment.ContentRootPath}\\{Constants.ProjectFolderAddress}\\{file.Name.Replace(".pdf", "")}\\{model.Year}\\{model.Month}\\";
+
+                    var path = $"{directory}{file.Name.Replace(".pdf", "")}-{model.Year}-{model.Month}.pdf";
+
+                    if (!Directory.Exists(directory))
+                        Directory.CreateDirectory(directory);
+
+                    await using FileStream fs = new(path, FileMode.Create);
+                    await file.OpenReadStream(1024 * 1024 * 10).CopyToAsync(fs);
+                    fs.Close();
+                }
+                MudDialog.Close();
+            }
+        }
+        
+        // await form.Validate();
+        // if (form.IsValid)
+        // {
+
+        //     // string[] folders = model.Name.Split("-");
+        //     // var path = Path.Combine(WebHostEnvironment.WebRootPath, "financial", folders[0], folders[1], folders[2]);
+        //     // // Directory.CreateDirectory(path);
+        //     // using (var fileStream = model.File.OpenReadStream(maxAllowedSize: 1024 * 1024 * 10))
+        //     // using (var fileWriteStream = new FileStream(path, FileMode.Create))
+        //     // {
+        //     //     await fileStream.CopyToAsync(fileWriteStream);
+        //     // }
+        //     // MudDialog.Close();
+        //     var checkResult = await UserService.CheckEmployeeCodes(new List<int> { model.EmployeeCode });
+        //     if (checkResult != null && checkResult.Contains(model.EmployeeCode))
+        //     {
+        //         var tempName = $"{model.EmployeeCode}-{model.Year}-{model.Month}{Path.GetExtension(model.File.Name)}";
+        //         var directory = $"{WebHostEnvironment.WebRootPath}\\financial\\{model.EmployeeCode}\\{model.Year}\\{model.Month}\\";
+
+        //         var path = $"{directory}{tempName}";
+
+        //         if (!Directory.Exists(directory))
+        //             Directory.CreateDirectory(directory);
+
+        //         await using FileStream fs = new(path, FileMode.Create);
+        //         await model.File.OpenReadStream(1024 * 1024 * 10).CopyToAsync(fs);
+        //         MudDialog.Close();
+        //     }
+        //     else if (checkResult != null && !checkResult.Contains(model.EmployeeCode))
+        //     {
+        //         Snackbar.Add("User with this employee code was not found", Severity.Error);
+        //     }
+        //     else
+        //     {
+        //         Snackbar.Add("Unexpected Error", Severity.Error);
+        //     }
+
+        // }
+    }
+
+}

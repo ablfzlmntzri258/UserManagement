@@ -1,0 +1,113 @@
+@inject IJSRuntime JS
+@using UserManagement.Services
+@using UserManagement.Shared.Models
+@using UserManagement.Validators
+@using Severity = MudBlazor.Severity
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@inject IWebHostEnvironment WebHostEnvironment
+
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form" Validation="@(ValidationRules.ValidateValue)" ValidationDelay="0">
+            <MudTextField @bind-Value="@(model.EmployeeCode)"
+                          For="@(() => model.EmployeeCode)"
+                          Immediate="true"
+                          Label="EmployeeCode" InputType="InputType.Number"/>
+            <MudTextField @bind-Value="@(model.Year)"
+                          For="@(() => model.Year)"
+                          Immediate="true"
+                          Label="Year" InputType="InputType.Number" />
+            <MudTextField @bind-Value="@(model.Month)"
+                          For="@(() => model.Month)"
+                          Immediate="true"
+                          Label="Month" InputType="InputType.Number" />
+            <MudFileUpload T="IBrowserFile" Accept=".pdf" For="@(() => model.File)" @bind-Files="model.File" OnFilesChanged="UploadFiles" SuppressOnChangeWhenInvalid="SuppressOnChangeWhenInvalid">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               for="@context.Id">
+                        Upload Files
+                    </MudButton>
+                    <MudButton OnClick="@context.Actions.ClearAsync"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Clear">
+                        Clear Files
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Close(false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    MudForm form;
+
+    private bool SuppressOnChangeWhenInvalid;
+
+    private void UploadFiles(InputFileChangeEventArgs e)
+    {
+        //If SuppressOnChangeWhenInvalid is false, perform your validations here
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add($"This file has the extension {model.File.Name.Split(".").Last()}", Severity.Info);
+
+        //TODO upload the files to the server
+    }
+
+    FileModel model = new();
+    private FileModelFluentValidator ValidationRules = new();
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+
+            // string[] folders = model.Name.Split("-");
+            // var path = Path.Combine(WebHostEnvironment.WebRootPath, "financial", folders[0], folders[1], folders[2]);
+            // // Directory.CreateDirectory(path);
+            // using (var fileStream = model.File.OpenReadStream(maxAllowedSize: 1024 * 1024 * 10))
+            // using (var fileWriteStream = new FileStream(path, FileMode.Create))
+            // {
+            //     await fileStream.CopyToAsync(fileWriteStream);
+            // }
+            // MudDialog.Close();
+            var checkResult = await UserService.CheckEmployeeCodes(new List<int> { model.EmployeeCode });
+            if (checkResult != null && checkResult.Contains(model.EmployeeCode))
+            {
+                var tempName = $"{model.EmployeeCode}-{model.Year}-{model.Month}{Path.GetExtension(model.File.Name)}";
+                var directory = $"{WebHostEnvironment.ContentRootPath}\\{Constants.ProjectFolderAddress}\\{model.EmployeeCode}\\{model.Year}\\{model.Month}\\";
+
+                var path = $"{directory}{tempName}";
+
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                await using FileStream fs = new(path, FileMode.Create);
+                await model.File.OpenReadStream(1024 * 1024 * 10).CopyToAsync(fs);
+                fs.Close();
+                Console.WriteLine("Here");
+                MudDialog.Close();
+            }
+            else if (checkResult != null && !checkResult.Contains(model.EmployeeCode))
+            {
+                Snackbar.Add("User with this employee code was not found", Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add("Unexpected Error", Severity.Error);
+            }
+
+        }
+    }
+
+}

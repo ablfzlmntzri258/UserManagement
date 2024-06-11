@@ -1,0 +1,91 @@
+@inject IUserService CategoryService
+@inject IJSRuntime JS
+@using System.Net
+@using System.Security.Cryptography
+@using System.Text
+@using FluentValidation
+@using UserManagement.Services
+@using UserManagement.Shared.Models
+@using UserManagement.Validators
+@using UserManagement.Helpers
+@using Severity = MudBlazor.Severity
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@inject HashHelper HashHelper
+
+
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Class="d-flex justify-content-center align-items-center flex-column" Model=@(model) @ref="@form" Validation="@(userValidator.ValidateValue)" ValidationDelay="0">
+            <MudTextField Class="mb-3 w-50" @bind-Value="model.Name" For="@(() => model.Name)" Label="Name" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField Class="mb-3 w-50" @bind-Value="model.UserName" For="@(() => model.UserName)" Label="Username" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField Class="mb-3 w-50" @bind-Value="model.Password" For="@(() => model.Password)" Label="password" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField InputType="InputType.Number" Class="mb-3 w-50" @bind-Value="model.EmployeeCode" For="@(() => model.EmployeeCode)" Label="EmployeeCode" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField InputType="InputType.Email" Class="mb-3 w-50" @bind-Value="model.Email" For="@(() => model.Email)" Label="Email" Variant="Variant.Outlined"></MudTextField>
+            <MudSelect Class="mb-3 " T="int" Label="Role" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Permission" For="@(() => model.Permission)">
+                <MudSelectItem Value="@(1)">Admin</MudSelectItem>
+                <MudSelectItem Value="@(2)">Financial</MudSelectItem>
+                <MudSelectItem Value="@(3)">Employee</MudSelectItem>
+            </MudSelect>
+
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Close(false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    MudForm form;
+
+    UserFluentValidator userValidator = new UserFluentValidator();
+
+    public User model = new User()
+    {
+        Permission = 1
+    };
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+             await HandleAddUser();
+        }
+    }
+    
+    public async Task HandleAddUser()
+    {
+        User newUser = new User()
+        {
+            Name = model.Name,
+            UserName = model.UserName,
+            Permission = model.Permission,
+            Password = HashHelper.CreateSHA512(model.Password),
+            Email = model.Email,
+            EmployeeCode = model.EmployeeCode
+        };
+        var result = await UserService.Create(newUser);
+        var resultStr = await result.Content.ReadAsStringAsync();
+        if (result.IsSuccessStatusCode)
+        {
+            if (result != null) MudDialog.Close(result);
+        }
+        else
+        {
+            if (resultStr.Contains("already exists"))
+            {
+                Snackbar.Add(resultStr, Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add("Unexpected error happened", Severity.Error);
+            }
+        }
+    }
+    
+}

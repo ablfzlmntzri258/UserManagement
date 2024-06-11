@@ -8,8 +8,7 @@ namespace UserManagement.Validators
         public LoginFluentValidator()
         {
             RuleFor(x => x.username)
-                .NotEmpty().WithMessage("نام کاربری نمیتواند خالی باشد!")
-                .MinimumLength(8).WithMessage("نام کاربری باید حداقل هشت کاراکتر باشد!");
+                .NotEmpty().WithMessage("نام کاربری نمیتواند خالی باشد!");
             RuleFor(x => x.password)
                 .NotEmpty().WithMessage("رمز عبور نمیتواند خالی باشد!")
                 .MinimumLength(8).WithMessage("رمز عبور باید حداقل هشت کاراکتر باشد!");

@@ -1,4 +1,4 @@
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @using UserManagement.Services
 @using UserManagement.Shared.Models
 @using UserManagement.Validators
@@ -11,18 +11,23 @@
 <MudDialog>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" Validation="@(ValidationRules.ValidateValue)" ValidationDelay="0">
-            <MudTextField @bind-Value="@(model.EmployeeCode)"
-                          For="@(() => model.EmployeeCode)"
-                          Immediate="true"
-                          Label="EmployeeCode" InputType="InputType.Number"/>
-            <MudTextField @bind-Value="@(model.Year)"
-                          For="@(() => model.Year)"
-                          Immediate="true"
-                          Label="Year" InputType="InputType.Number" />
-            <MudTextField @bind-Value="@(model.Month)"
-                          For="@(() => model.Month)"
-                          Immediate="true"
-                          Label="Month" InputType="InputType.Number" />
+            <MudAutocomplete Class="mb-3" Margin="Margin.None" T="string" Label="کاربران" @bind-Value="SelectedUser" SearchFunc="@Search1"
+                             ResetValueOnEmptyText="@resetValueOnEmptyText"
+                             CoerceText="@coerceText" CoerceValue="@coerceValue"
+                             AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" 
+                             Variant="Variant.Outlined"/>
+            <MudSelect Class="mb-3 " T="int" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Year" For="@(() => model.Year)">
+                @foreach (var y in years)
+                {
+                    <MudSelectItem Value="@y">@(y)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect Class="mb-3 " T="int" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Month" For="@(() => model.Month)">
+                @foreach (var m in months)
+                {
+                    <MudSelectItem Value="@m">@(m)</MudSelectItem>
+                }
+            </MudSelect>
             <MudFileUpload T="IBrowserFile" Accept=".pdf" For="@(() => model.File)" @bind-Files="model.File" OnFilesChanged="UploadFiles" SuppressOnChangeWhenInvalid="SuppressOnChangeWhenInvalid">
                 <ButtonTemplate>
                     <MudButton HtmlTag="label"
@@ -30,17 +35,20 @@
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.CloudUpload"
                                for="@context.Id">
-                        Upload Files
+                        اضافه کردن
                     </MudButton>
                     <MudButton OnClick="@context.Actions.ClearAsync"
                                Variant="Variant.Filled"
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.Clear">
-                        Clear Files
+                        حذف فایل انتخاب شده
                     </MudButton>
                 </ButtonTemplate>
             </MudFileUpload>
         </MudForm>
+        @if(model.File is not null){
+            <p>@model.File?.Name</p>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
@@ -50,6 +58,37 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    List<int> years = new List<int>();
+    List<int> months = new List<int>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        for (var i = 1390; i <= 1410; i++)
+        {
+            years.Add(i);
+        }
+        for (var i = 1; i <= 12; i++)
+        {
+            months.Add(i);
+        }
+        var allUsers = await UserService.GetAll();
+        allUsers.ForEach(u => users.Add($"{u.EmployeeCode} - {u.Name}"));
+    }
+    
+    private bool resetValueOnEmptyText;
+    private bool coerceText;
+    private bool coerceValue;
+    private string SelectedUser;
+    private List<string> users = new();
+    
+
+    private async Task<IEnumerable<string>> Search1(string value)
+    {
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value) || value.Length <= 2)
+            return new List<string>();
+        return users.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
 
     MudForm form;
 
@@ -59,8 +98,6 @@
     {
         //If SuppressOnChangeWhenInvalid is false, perform your validations here
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add($"This file has the extension {model.File.Name.Split(".").Last()}", Severity.Info);
-
         //TODO upload the files to the server
     }
 
@@ -81,11 +118,12 @@
             //     await fileStream.CopyToAsync(fileWriteStream);
             // }
             // MudDialog.Close();
-            var checkResult = await UserService.CheckEmployeeCodes(new List<int> { model.EmployeeCode });
-            if (checkResult != null && checkResult.Contains(model.EmployeeCode))
+            int EmployeeCode = int.Parse(SelectedUser.Split(" - ")[0]);
+            var checkResult = await UserService.CheckEmployeeCodes(new List<int> { EmployeeCode });
+            if (checkResult != null && checkResult.Contains(EmployeeCode))
             {
-                var tempName = $"{model.EmployeeCode}-{model.Year}-{model.Month}{Path.GetExtension(model.File.Name)}";
-                var directory = $"{WebHostEnvironment.ContentRootPath}\\{Constants.ProjectFolderAddress}\\{model.EmployeeCode}\\{model.Year}\\{model.Month}\\";
+                var tempName = $"{EmployeeCode}-{model.Year}-{model.Month}{Path.GetExtension(model.File.Name)}";
+                var directory = $"{WebHostEnvironment.ContentRootPath}\\{Constants.ProjectFolderAddress}\\{EmployeeCode}\\{model.Year}\\{model.Month}\\";
 
                 var path = $"{directory}{tempName}";
 
@@ -98,13 +136,13 @@
                 Console.WriteLine("Here");
                 MudDialog.Close();
             }
-            else if (checkResult != null && !checkResult.Contains(model.EmployeeCode))
+            else if (checkResult != null && !checkResult.Contains(EmployeeCode))
             {
-                Snackbar.Add("User with this employee code was not found", Severity.Error);
+                Snackbar.Add("کاربر با این کد یافت نشد", Severity.Error);
             }
             else
             {
-                Snackbar.Add("Unexpected Error", Severity.Error);
+                Snackbar.Add("خطای غیر منتظره", Severity.Error);
             }
 
         }

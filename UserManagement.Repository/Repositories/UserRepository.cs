@@ -14,7 +14,7 @@ namespace UserManagement.Repository.Repositories
 
         public List<User> GetAll()
         {
-            return _context.Users.ToList();
+            return _context.Users.AsNoTracking().ToList();
         }
 
         public User GetById(int id)
@@ -37,14 +37,7 @@ namespace UserManagement.Repository.Repositories
 
         public async Task Update(User user)
         {
-            var existingUser = _context.Users.First(u => u.Id.Equals(user.Id));
-            existingUser.UserName = user.UserName;
-            existingUser.Name = user.Name;
-            existingUser.Password = user.Password;
-            existingUser.Email = user.Email;
-            existingUser.EmployeeCode = user.EmployeeCode;
-            existingUser.RefreshToken = user.RefreshToken;
-            existingUser.RefreshTokenExpiryTime = user.RefreshTokenExpiryTime;
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
@@ -60,6 +53,33 @@ namespace UserManagement.Repository.Repositories
             List<int> allCodes = _context.Users.Select(u => u.EmployeeCode).ToList();
             return employeeCodes.Where(ec => allCodes.Contains(ec)).ToList();
 
+        }
+
+        public bool CheckDuplicateUsername(User user, bool isUpdating)
+        {
+            if (isUpdating)
+            {
+                return _context.Users.Where(u => u.Id != user.Id).Any(u => u.UserName == user.UserName);
+            }
+            return _context.Users.Any(u => u.UserName == user.UserName);
+        }
+
+        public bool CheckDuplicateEmployeeCode(User user, bool isUpdating)
+        {
+            if (isUpdating)
+            {
+                return _context.Users.Where(u => u.Id != user.Id).Any(u => u.EmployeeCode == user.EmployeeCode);
+            }
+            return _context.Users.Any(u => u.EmployeeCode == user.EmployeeCode);
+        }
+
+        public bool CheckDuplicateEmail(User user, bool isUpdating)
+        {
+            if (isUpdating)
+            {
+                return _context.Users.Where(u => u.Id != user.Id).Any(u => u.Email == user.Email);
+            }
+            return _context.Users.Any(u => u.Email == user.Email);
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using FluentValidation;
 using UserManagement.Shared.Models;
 
@@ -10,14 +10,14 @@ public class FileModelFluentValidator : AbstractValidator<FileModel>
     {
         RuleFor(x => x.EmployeeCode).NotEmpty();
         RuleFor(x => x.Year).NotEmpty().
-            InclusiveBetween(1390, 1500).WithMessage("Year must be between 1390 and 1500");
+            InclusiveBetween(1390, 1410);
         RuleFor(x => x.Month).NotEmpty().
-            InclusiveBetween(1, 12).WithMessage("Month must be between 1 and 12");
+            InclusiveBetween(1, 12);
         RuleFor(x => x.File)
-            .NotEmpty().WithMessage("You must select a file first");
+            .NotEmpty().WithMessage("فایل انتخاب نشده است");
         When(x => x.File != null, () =>
         {
-            RuleFor(x => x.File.Size).LessThanOrEqualTo(10485760).WithMessage("The maximum file size is 10 MB");
+            RuleFor(x => x.File.Size).LessThanOrEqualTo(10485760).WithMessage("حداکثر حجم فایل میتواند ده مگابایت باشد");
         });
     }
 

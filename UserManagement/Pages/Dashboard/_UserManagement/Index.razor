@@ -1,4 +1,4 @@
-@page "/dashboard/user-management"
+﻿@page "/dashboard/user-management"
 @using UserManagement.Services
 @layout Shared.DashboardLayout
 @using UserManagement.Shared.Models
@@ -10,33 +10,33 @@
 <AuthorizeView Roles="admin" Context="userManagementContext">
     <Authorized>
         <div class="mb-5">
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowAddDialog">Add User</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowAddDialog">اضافه کردن کاربر</MudButton>
         </div>
         <MudTable Items="@Users" Dense="@dense" Hover="@hover" ReadOnly="@ronly" Filter="new Func<User, bool>(FilterFunc)"
                   SortLabel="Sort By">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Users</MudText>
+                <MudText Typo="Typo.h6">کاربران</MudText>
                 <MudSpacer/>
-                <MudTextField Immediate=true @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField Immediate=true @bind-Value="searchString" Placeholder="جست و جو در کاربران" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <HeaderContent>
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<User, object>(x => x.Id)">Id</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Name)">Name</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Name)">نام</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.UserName)">UserName</MudTableSortLabel>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x => x.UserName)">نام کاربری</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Email)">Email</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Email)">ایمیل</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.EmployeeCode)">EmployeeCode</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.EmployeeCode)">کد کارمند</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Permission)">Role</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<User, object>(x => x.Permission)">دسترسی</MudTableSortLabel>
                 </MudTh>
                 <MudTh></MudTh>
                 <MudTh></MudTh>
@@ -48,8 +48,8 @@
                 <MudTd DataLabel="Email">@context.Email</MudTd>
                 <MudTd DataLabel="EmployeeCode">@context.EmployeeCode</MudTd>
                 <MudTd DataLabel="EmployeeCode">@context.Permission</MudTd>
-                <MudTd Class="p-0" DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => ShowEditDialog(context)">Edit</MudButton></MudTd>
-                <MudTd DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteUser(context.Id)">Delete</MudButton></MudTd>
+                <MudTd Class="p-0" DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => ShowEditDialog(context)">ویرایش</MudButton></MudTd>
+                <MudTd DataLabel="EmployeeCode"><MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteUser(context.Id)">حذف</MudButton></MudTd>
             </RowTemplate>
             <PagerContent>
                 <MudTablePager/>
@@ -60,7 +60,7 @@
         </MudTable>
     </Authorized>
     <NotAuthorized>
-        You don't have access to this page!
+        شما به این صفحه دسترسی ندارید!
     </NotAuthorized>
 </AuthorizeView>
 
@@ -108,11 +108,11 @@
         {
             Users = await UserService.GetAll();
             StateHasChanged();
-            Snackbar.Add($"User with ID {userId} is deleted successfully", Severity.Success);
+            Snackbar.Add($"کاربر با آیدی {userId} حذف شد", Severity.Success);
         }
         else
         {
-            Snackbar.Add($"Deletion failed!", Severity.Error);
+            Snackbar.Add($"مشکلی در حذف کاربر رخ داده است", Severity.Error);
         }
     }
 
@@ -122,11 +122,11 @@
     private async void ShowAddDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
-        var dialog = await DialogService.ShowAsync<AddDialog>("Add User", dialogParameters, dialogOptions);
+        var dialog = await DialogService.ShowAsync<AddDialog>("اضافه کردن کاربر جدید", dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled && result.Data != null)
         {
-            Snackbar.Add("New user has been successfuly added", Severity.Success);
+            Snackbar.Add("کاربر جدید با موفقیت اضافه شد", Severity.Success);
             Users = await UserService.GetAll();
             StateHasChanged();
         }
@@ -136,11 +136,11 @@
     {
         DialogParameters dialogParameters = new DialogParameters();
         dialogParameters.Add("model", user);
-        var dialog = await DialogService.ShowAsync<EditDialog>("Add User", dialogParameters, dialogOptions);
+        var dialog = await DialogService.ShowAsync<EditDialog>("ویرایش کاربر", dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled && result.Data != null)
         {
-            Snackbar.Add($"User with username \"{user.UserName}\" has been successfuly updated", Severity.Success);
+            Snackbar.Add($"با موفقیت ویرایش شد \"{user.UserName}\" کاربر با نام کاربری", Severity.Success);
             Users = await UserService.GetAll();
             StateHasChanged();
         }

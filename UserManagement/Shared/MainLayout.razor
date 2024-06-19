@@ -2,7 +2,6 @@
 
 <MudRTLProvider RightToLeft="true">
     <PageTitle>UserManagement</PageTitle>
-    <MudThemeProvider/>
     <MudDialogProvider/>
     <MudSnackbarProvider/>
     <div class="page">
@@ -21,3 +20,9 @@
         </main>
     </div>
 </MudRTLProvider>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var x = 2;
+    }
+}

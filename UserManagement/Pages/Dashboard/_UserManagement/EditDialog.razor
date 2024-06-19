@@ -1,4 +1,4 @@
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @using System.Security.Cryptography
 @using System.Text
 @using UserManagement.Services
@@ -12,21 +12,21 @@
 <MudDialog>
     <DialogContent>
         <MudForm Class="d-flex justify-content-center align-items-center flex-column" Model=@(model) @ref="@form" Validation="@(userValidator.ValidateValue)" ValidationDelay="0">
-            <MudTextField Class="mb-3 w-50" @bind-Value="model.Name" For="@(() => model.Name)" Label="Name" Variant="Variant.Outlined"></MudTextField>
-            <MudTextField Class="mb-3 w-50" @bind-Value="model.UserName" For="@(() => model.UserName)" Label="Username" Variant="Variant.Outlined"></MudTextField>
-            <MudTextField InputType="InputType.Number" Class="mb-3 w-50" @bind-Value="model.EmployeeCode" For="@(() => model.EmployeeCode)" Label="EmployeeCode" Variant="Variant.Outlined"></MudTextField>
-            <MudTextField InputType="InputType.Email" Class="mb-3 w-50" @bind-Value="model.Email" For="@(() => model.Email)" Label="Email" Variant="Variant.Outlined"></MudTextField>
-            <MudSelect Class="mb-3 " T="int" Label="Role" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Permission" For="@(() => model.Permission)">
-                <MudSelectItem Value="@(1)">Admin</MudSelectItem>
-                <MudSelectItem Value="@(2)">Financial</MudSelectItem>
-                <MudSelectItem Value="@(3)">Employee</MudSelectItem>
+            <MudTextField Class="mb-3 w-50" @bind-Value="model.Name" For="@(() => model.Name)" Label="نام" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField Class="mb-3 w-50" @bind-Value="model.UserName" For="@(() => model.UserName)" Label="نام کاربری" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField InputType="InputType.Number" Class="mb-3 w-50" @bind-Value="model.EmployeeCode" For="@(() => model.EmployeeCode)" Label="کد کارمند" Variant="Variant.Outlined"></MudTextField>
+            <MudTextField InputType="InputType.Email" Class="mb-3 w-50" @bind-Value="model.Email" For="@(() => model.Email)" Label="ایمیل" Variant="Variant.Outlined"></MudTextField>
+            <MudSelect Class="mb-3 " T="int" Label="نقش" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Permission" For="@(() => model.Permission)">
+                <MudSelectItem Value="@(1)">ادمین</MudSelectItem>
+                <MudSelectItem Value="@(2)">مالی</MudSelectItem>
+                <MudSelectItem Value="@(3)">کارمند</MudSelectItem>
             </MudSelect>
 
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Close(false)">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">لغو</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">ذخیره</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -36,50 +36,27 @@
     MudForm form;
 
     UserFluentValidator userValidator = new UserFluentValidator();
-    
+
     private async Task Submit()
     {
         await form.Validate();
         if (form.IsValid)
         {
-             await HandleUpdateUser();
+            await HandleUpdateUser();
         }
     }
-    
+
     public async Task HandleUpdateUser()
     {
         var result = await UserService.Update(model);
-        var resultStr = await result.Content.ReadAsStringAsync();
-        if (result.IsSuccessStatusCode)
+        if (result.Success)
         {
-            if (result != null) MudDialog.Close(result);
+            MudDialog.Close(result);
         }
         else
         {
-            if (resultStr.Contains("already exists"))
-            {
-                Snackbar.Add(resultStr, Severity.Error);
-            }
-            else
-            {
-                Snackbar.Add("Unexpected error happened", Severity.Error);
-            }
+            Snackbar.Add(result.ErrorMessage, Severity.Error);
         }
     }
-    
-    public string CreateSHA512(string strData)
-    {
-        var message = Encoding.UTF8.GetBytes(strData);
-        using (var alg = SHA512.Create())
-        {
-            string hex = "";
 
-            var hashValue = alg.ComputeHash(message);
-            foreach (byte x in hashValue)
-            {
-                hex += String.Format("{0:x2}", x);
-            }
-            return hex;
-        }
-    }
 }

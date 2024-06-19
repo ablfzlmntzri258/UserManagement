@@ -19,7 +19,7 @@ public class UserController : Controller
     private readonly ILogger<UserController> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserController(IUserRepository userRepository, ILogger<UserController> logger,IHttpContextAccessor httpContextAccessor)
+    public UserController(IUserRepository userRepository, ILogger<UserController> logger, IHttpContextAccessor httpContextAccessor)
     {
         this.userRepository = userRepository;
         _logger = logger;
@@ -31,69 +31,112 @@ public class UserController : Controller
     {
         return Ok(userRepository.GetAll());
     }
-        
+
     [HttpGet]
     public IActionResult GetById()
     {
-        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "-1"; 
+        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "-1";
         return Ok(userRepository.GetById(int.Parse(userId)));
     }
 
-    
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody]User user)
+    public async Task<IActionResult> Create([FromBody] User user)
     {
         try
         {
+            if (userRepository.CheckDuplicateEmployeeCode(user, false))
+            {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این کد از قبل وجود دارد"
+                });
+
+            }
+            if (userRepository.CheckDuplicateEmail(user, false))
+            {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این ایمیل از قبل وجود دارد"
+                });
+
+            }
+            if (userRepository.CheckDuplicateUsername(user, false))
+
+            {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این نام کاربری از قبل وجود دارد"
+                });
+
+            }
             await userRepository.Create(user);
+            return CreatedAtAction(nameof(Create), new { id = user.Id }, new ApiResponse<User>
+            {
+                Success = true,
+                Data = user
+            });
         }
-        catch (DbUpdateException ex)
+        catch
         {
-            if (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2627 || sqlEx.Number == 2601))
+            return BadRequest(new ApiResponse<User>
             {
-                if (sqlEx.Message.Contains("IX_t_user_UserName"))
-                {
-                    return BadRequest("A user with this username already exists");
-                }
-                else if (sqlEx.Message.Contains("IX_t_user_Email"))
-                {
-                    return BadRequest("A user with this email already exists");
-                }
-            }
-            else
-            {
-                throw;
-            }
+                Success = false,
+                ErrorMessage = "Unexpected Error"
+            });
         }
-        return CreatedAtAction(nameof(Create), new { id = user.Id }, user);
     }
-        
+
     [HttpPut]
     public async Task<IActionResult> Update(User user)
     {
         try
         {
+            if (userRepository.CheckDuplicateEmployeeCode(user, true)) {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این کد از قبل وجود دارد"
+                });
+                
+            }
+            if (userRepository.CheckDuplicateEmail(user, true))
+            {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این ایمیل از قبل وجود دارد"
+                });
+
+            }
+            if (userRepository.CheckDuplicateUsername(user, true))
+
+            {
+                return BadRequest(new ApiResponse<User>
+                {
+                    Success = false,
+                    ErrorMessage = "کاربری با این نام کاربری از قبل وجود دارد"
+                });
+
+            }
             await userRepository.Update(user);
+            return Ok(new ApiResponse<User>
+            {
+                Success = true,
+                Data = user
+            });
         }
-        catch (DbUpdateException ex)
+        catch
         {
-            if (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2627 || sqlEx.Number == 2601))
+            return Ok(new ApiResponse<User>
             {
-                if (sqlEx.Message.Contains("IX_t_user_UserName"))
-                {
-                    return BadRequest("A user with this username already exists");
-                }
-                else if (sqlEx.Message.Contains("IX_t_user_Email"))
-                {
-                    return BadRequest("A user with this email already exists");
-                }
-            }
-            else
-            {
-                throw;
-            }
+                Success = false,
+                ErrorMessage = "خطای غیرمنتظره"
+            });
         }
-        return NoContent();
     }
 
     [HttpDelete("{userId:int}")]

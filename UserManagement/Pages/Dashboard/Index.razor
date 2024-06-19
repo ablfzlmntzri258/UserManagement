@@ -1,42 +1,40 @@
-@page "/dashboard"
+﻿@page "/dashboard"
 @using UserManagement.Helpers;
 @using UserManagement.Services;
 @using UserManagement.Shared.Models
 @using UserManagement.Shared.Interface
 @layout Shared.DashboardLayout
-@inject IExternalAuthService AuthService
-@inject ExternalAuthStateProvider AuthServiceStateProvider
 @inject FileHelper fileHelper
 @inject PDFHelper PDFHelper
 @inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
-
+@inject IExternalAuthService AuthService
 
 <MudTable T="FileModel" Items="@allFiles" Filter="new Func<FileModel, bool>(FilterFunc)"
           SortLabel="Sort By">
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Users</MudText>
+        <MudText Typo="Typo.h6">فایل های من</MudText>
         <MudSpacer />
-        <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="Year" Class="mt-0 mx-5"></MudTextField>
-        <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="Month" Class="mt-0 mx-5"></MudTextField>
+        <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField>
+        <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">Name</MudTableSortLabel>
+            <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">نام</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">Year</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">سال</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Month)">Month</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Month)">ماه</MudTableSortLabel>
         </MudTh>
         <MudTh></MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Name">@context.Name</MudTd>
-        <MudTd DataLabel="Year">@context.Year</MudTd>
-        <MudTd DataLabel="Month">@context.Month</MudTd>
+        <MudTd DataLabel="نام">@context.Name</MudTd>
+        <MudTd DataLabel="سال">@context.Year</MudTd>
+        <MudTd DataLabel="ماه">@context.Month</MudTd>
         <MudTd dir="ltr">
             <MudButton OnClick="@(() => ShowPdf(context))" Color="Color.Error">
                 <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error" />
@@ -61,10 +59,11 @@
     protected override async Task OnInitializedAsync()
     {
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
-        var authState = await AuthServiceStateProvider.GetAuthenticationStateAsync();
-        EmployeeCode = int.Parse(authState.User.Claims.FirstOrDefault(c => c.Type == "EmployeeCode").Value);
+        var user = await AuthService.UserAuthenticated();
+        // if (authState.User is null)
+        //     return;
+        EmployeeCode = int.Parse(user.Claims.FirstOrDefault(c => c.Type == "EmployeeCode").Value);
         allFiles = fileHelper.GetUserFiles(EmployeeCode);
-        Console.WriteLine(allFiles.Count);
     }
 
 

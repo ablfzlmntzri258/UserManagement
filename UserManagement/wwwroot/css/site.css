@@ -1,7 +1,11 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@font-face {
+    font-family: Sahel;
+    src: url(../Sahel.woff);
+}
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Sahel !important;
     height: 100%;
 }
 
@@ -80,4 +84,8 @@ input[type='number']::-webkit-outer-spin-button {
 
 .mud-select{
     width: 50%;
+}
+
+.mud-autocomplete{
+    width: 100%;
 }

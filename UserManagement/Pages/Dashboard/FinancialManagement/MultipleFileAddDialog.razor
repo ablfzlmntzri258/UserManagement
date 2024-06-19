@@ -1,4 +1,4 @@
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @using UserManagement.Services
 @using UserManagement.Shared.Models
 @using UserManagement.Validators
@@ -18,20 +18,20 @@
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.CloudUpload"
                                for="@context.Id">
-                        Multiple Files
+                        اضافه کردن
                     </MudButton>
                 </ButtonTemplate>
             </MudFileUpload>
         </MudForm>
         @if (files.Count == 0)
         {
-            <p class="mt-5">No files are added</p>
+            <p class="mt-5">هیچ فایلی اضافه نشده است</p>
         }
         else
         {
             <MudTable Class="mt-5 w-50 mx-auto" T="IBrowserFile" Items="@files" Hover="true" Breakpoint="Breakpoint.Sm">
                 <HeaderContent>
-                    <MudTh>File Name</MudTh>
+                    <MudTh>نام فایل</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -46,8 +46,8 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">لغو</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">ذخیره</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -59,10 +59,10 @@
     private async void AddFiles(IReadOnlyList<IBrowserFile> files)
     {
         List<string> incorrectFileNames = new();
-        var EmployeeCodes = files.Where(file => {
-            return ValidationRules.IsFileNameValid(file.Name.Replace(".pdf", ""));
-        }).Select(file => int.Parse(file.Name.Split("-")[0])).ToList();
+        var EmployeeCodes = files.Where(file => ValidationRules.IsFileNameValid(file.Name.Replace(".pdf", "")))
+        .Select(file => int.Parse(file.Name.Split("-")[0])).ToList();
         var checkedEmployeeCodes = await UserService.CheckEmployeeCodes(EmployeeCodes);
+        if (checkedEmployeeCodes == null) return;
         foreach (var file in files)
         {
             if (ValidationRules.IsFileNameValid(file.Name.Replace(".pdf", "")) && checkedEmployeeCodes.Contains(int.Parse(file.Name.Split("-")[0])))
@@ -76,7 +76,7 @@
         }
         StateHasChanged();
         if (incorrectFileNames.Count > 0)
-            Snackbar.Add("These files could not be added due to their invalid names <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
+            Snackbar.Add("فایل های زیر به دلیل نام غیر مجاز قابل اضافه شدن نیستند: <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
     }
 
 
@@ -89,7 +89,7 @@
     {
         if (files.Count == 0)
         {
-            Snackbar.Add("No file is added", Severity.Error);
+            Snackbar.Add("هیچ فایلی اضافه نشده است", Severity.Error);
 
         }
         else

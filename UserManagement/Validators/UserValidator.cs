@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using UserManagement.Shared.Models;
 
 namespace UserManagement.Validators;
@@ -8,20 +8,19 @@ public class UserFluentValidator : AbstractValidator<User>
     public UserFluentValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required!");
+            .NotEmpty().WithMessage("وارد کردن نام اجباری است");
         RuleFor(x => x.UserName)
-            .NotEmpty().WithMessage("Username is required!")
-            .MinimumLength(8).WithMessage("Username must at least have 8 characters");
+            .NotEmpty().WithMessage("وارد کردن نام کاربری اجباری است");
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required!")
-            .MinimumLength(8).WithMessage("Password must at least have 8 characters");
+            .NotEmpty().WithMessage("وارد کردن رمز ضروری است")
+            .MinimumLength(8).WithMessage("رمز حداقل باید هشت کاراکتر باشد");
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required!")
-            .EmailAddress().WithMessage("You must provide a email address!");
+            .NotEmpty().WithMessage("وارد کردن ایمیل ضروری است")
+            .EmailAddress().WithMessage("ایمیل وارد شده معتبر نیست");
         RuleFor(x => x.EmployeeCode)
-            .NotEmpty().WithMessage("EmployeeCode is required!");
+            .NotEmpty().WithMessage("وارد کردن کد کارمند ضروری است");
         RuleFor(x => x.Permission)
-            .NotEmpty().WithMessage("Permission is required!");
+            .NotEmpty().WithMessage("انتخاب نقش ضروری است");
     }
 
 

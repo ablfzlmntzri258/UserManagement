@@ -35,15 +35,12 @@ builder.Services.AddHttpClient<HttpService>(options =>
 {;
     options.BaseAddress = new Uri("http://localhost:5186");
 });
-builder.Services.AddHttpClient<UserService>(options =>
-{;
-    options.BaseAddress = new Uri("http://localhost:5186");
-});
-builder.Services.AddScoped<AuthenticationStateProvider, ExternalAuthStateProvider>();
-builder.Services.AddScoped<ExternalAuthStateProvider>();
+
+//builder.Services.AddScoped<AuthenticationStateProvider, ExternalAuthStateProvider>();
+//builder.Services.AddScoped<ExternalAuthStateProvider>();
 builder.Services.AddScoped<HttpContextAccessor>();
 builder.Services.AddScoped<IExternalAuthService, ExternalAuthService>();
-builder.Services.AddScoped<ILocalStorageManager, LocalStorageManager>();
+//builder.Services.AddScoped<ILocalStorageManager, LocalStorageManager>();
 builder.Services.AddScoped<PDFHelper>();
 builder.Services.AddScoped<FileHelper>();
 builder.Services.AddScoped<HashHelper>();
@@ -57,7 +54,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         configureOptions.Cookie.Name = "AspCookie";
         configureOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        configureOptions.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+        configureOptions.ExpireTimeSpan = TimeSpan.FromMinutes(120);
         configureOptions.SlidingExpiration = false;
     });
 

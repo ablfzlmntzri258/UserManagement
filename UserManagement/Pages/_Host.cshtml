@@ -21,7 +21,7 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </head>
 <body>
-@(await Html.RenderComponentAsync<App>(RenderMode.Server))
+<component type="typeof(App)" render-mode="ServerPrerendered" />
 <div id="blazor-error-ui">
     <environment include="Staging,Production">
         An error has occurred. This application may no longer respond until reloaded.

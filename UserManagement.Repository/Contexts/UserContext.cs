@@ -36,5 +36,8 @@ public class UserContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.UserName)
             .IsUnique();
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.EmployeeCode)
+            .IsUnique();
     }
 }

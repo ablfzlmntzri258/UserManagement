@@ -1,4 +1,4 @@
-@page "/dashboard/financial-management"
+﻿@page "/dashboard/financial-management"
 @using UserManagement.Services
 @using UserManagement.Helpers
 @layout Shared.DashboardLayout
@@ -14,40 +14,40 @@
 <AuthorizeView Roles="admin, financial" Context="userManagementContext">
     <Authorized>
         <div class="mb-5">
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowSingleAddDialog">Add a file</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddDialog">Add files</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddWithDateDialog">Add files for a month</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowSingleAddDialog">اضافه کردن تکی</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddDialog">اضافه کردن چندتایی</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ShowMultipleAddWithDateDialog">اضافه کردن برای یک ماه</MudButton>
         </div>
         <MudTable T="FileModel" Items="@allFiles" Filter="new Func<FileModel, bool>(FilterFunc)"
                   SortLabel="Sort By">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Users</MudText>
+                <MudText Typo="Typo.h6">فایل ها</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="Year" Class="mt-0 mx-5"></MudTextField>
-                <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="Month" Class="mt-0 mx-5"></MudTextField>
-                <MudTextField @bind-Value="EmplyoeeCode" InputType="InputType.Number" Placeholder="Employee Code" Class="mt-0 mx-5"></MudTextField>
+                <MudTextField Immediate=true @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField>
+                <MudTextField Immediate=true @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField>
+                <MudTextField Immediate=true @bind-Value="EmplyoeeCode" InputType="InputType.Number" Placeholder="کد کارمند" Class="mt-0 mx-5"></MudTextField>
             </ToolBarContent>
             <HeaderContent>
                 <MudTh>
-                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">Name</MudTableSortLabel>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">نام</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.EmployeeCode)">Employee Code</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.EmployeeCode)">کد کارمند</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">Year</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">سال</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Month)">Month</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Month)">ماه</MudTableSortLabel>
                 </MudTh>
                 <MudTh></MudTh>
                 <MudTh></MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Name">@context.Name</MudTd>
-                <MudTd DataLabel="Employee Code">@context.EmployeeCode</MudTd>
-                <MudTd DataLabel="Year">@context.Year</MudTd>
-                <MudTd DataLabel="Month">@context.Month</MudTd>
+                <MudTd DataLabel="نام">@context.Name</MudTd>
+                <MudTd DataLabel="کد کارمند">@context.EmployeeCode</MudTd>
+                <MudTd DataLabel="سال">@context.Year</MudTd>
+                <MudTd DataLabel="ماه">@context.Month</MudTd>
                 <MudTd dir="ltr">
                     <MudButton OnClick="@(() => ShowPdf(context))" Color="Color.Error">
                         <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error" />
@@ -63,7 +63,7 @@
         </MudTable>
     </Authorized>
     <NotAuthorized>
-        You don't have access to this page!
+        شما به این صفحه دسترسی ندارید!
     </NotAuthorized>
 </AuthorizeView>
 
@@ -101,11 +101,11 @@
     private async void ShowSingleAddDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
-        var dialog = await DialogService.ShowAsync<SingleFileAddDialog>("Add a new file", dialogParameters, dialogOptions);
+        var dialog = await DialogService.ShowAsync<SingleFileAddDialog>("اضافه کردن یک فایل جدید", dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            Snackbar.Add("File uploaded successfully", Severity.Success);
+            Snackbar.Add("فایل با موفقیت اضافه شد", Severity.Success);
             allFiles = fileHelper.GetFiles();
             StateHasChanged();
         }
@@ -113,22 +113,22 @@
     private async void ShowMultipleAddDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
-        var dialog = await DialogService.ShowAsync<MultipleFileAddDialog>("Add files", dialogParameters, dialogOptions);
+        var dialog = await DialogService.ShowAsync<MultipleFileAddDialog>("اضافه کردن چندتایی", dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            Snackbar.Add("All Files uploaded successfully", Severity.Success);
+            Snackbar.Add("فایل ها با موفقیت اضافه شدند", Severity.Success);
             StateHasChanged();
         }
     }
     private async void ShowMultipleAddWithDateDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
-        var dialog = await DialogService.ShowAsync<MultipleFileWithDateAddDialog>("Add files for a month", dialogParameters, dialogOptions);
+        var dialog = await DialogService.ShowAsync<MultipleFileWithDateAddDialog>("اضافه کردن برای یک ماه", dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            Snackbar.Add("All Files uploaded successfully", Severity.Success);
+            Snackbar.Add("فایل ها با موفقیت اضافه شدند", Severity.Success);
             StateHasChanged();
         }
     }

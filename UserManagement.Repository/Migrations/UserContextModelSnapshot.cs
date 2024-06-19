@@ -68,10 +68,13 @@ namespace UserManagement.Repository.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
+                    b.HasIndex("EmployeeCode")
+                        .IsUnique();
+
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("t_user", (string)null);
+                    b.ToTable("t_user");
                 });
 #pragma warning restore 612, 618
         }

@@ -44,6 +44,7 @@ builder.Services.AddScoped<IExternalAuthService, ExternalAuthService>();
 builder.Services.AddScoped<PDFHelper>();
 builder.Services.AddScoped<FileHelper>();
 builder.Services.AddScoped<HashHelper>();
+builder.Services.AddScoped<DateHelper>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddBlazoredLocalStorage();

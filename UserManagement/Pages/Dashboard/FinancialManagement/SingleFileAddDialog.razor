@@ -11,11 +11,11 @@
 <MudDialog>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" Validation="@(ValidationRules.ValidateValue)" ValidationDelay="0">
-            <MudAutocomplete Class="mb-3" Margin="Margin.None" T="string" Label="کاربران" @bind-Value="SelectedUser" SearchFunc="@Search1"
+            <MudAutocomplete Class="mb-3" Margin="Margin.None" T="string" Label="کاربران" @bind-Value="model.Code_Name" SearchFunc="@Search1"
                              ResetValueOnEmptyText="@resetValueOnEmptyText"
                              CoerceText="@coerceText" CoerceValue="@coerceValue"
                              AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" 
-                             Variant="Variant.Outlined"/>
+                             Variant="Variant.Outlined" For="@(() => model.Code_Name)"/>
             <MudSelect Class="mb-3 " T="int" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Year" For="@(() => model.Year)">
                 @foreach (var y in years)
                 {
@@ -23,10 +23,18 @@
                 }
             </MudSelect>
             <MudSelect Class="mb-3 " T="int" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="model.Month" For="@(() => model.Month)">
-                @foreach (var m in months)
-                {
-                    <MudSelectItem Value="@m">@(m)</MudSelectItem>
-                }
+                <MudSelectItem Value="1">فروردین</MudSelectItem>
+                <MudSelectItem Value="2">اردیبهشت</MudSelectItem>
+                <MudSelectItem Value="3">خرداد</MudSelectItem>
+                <MudSelectItem Value="4">تیر</MudSelectItem>
+                <MudSelectItem Value="5">مرداد</MudSelectItem>
+                <MudSelectItem Value="6">شهریور</MudSelectItem>
+                <MudSelectItem Value="7">مهر</MudSelectItem>
+                <MudSelectItem Value="8">آبان</MudSelectItem>
+                <MudSelectItem Value="9">آذر</MudSelectItem>
+                <MudSelectItem Value="10">دی</MudSelectItem>
+                <MudSelectItem Value="11">بهمن</MudSelectItem>
+                <MudSelectItem Value="12">اسفند</MudSelectItem>
             </MudSelect>
             <MudFileUpload T="IBrowserFile" Accept=".pdf" For="@(() => model.File)" @bind-Files="model.File" OnFilesChanged="UploadFiles" SuppressOnChangeWhenInvalid="SuppressOnChangeWhenInvalid">
                 <ButtonTemplate>
@@ -51,25 +59,20 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Surface" OnClick="() => MudDialog.Cancel()">لغو</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Submit())">ذخیره</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     List<int> years = new List<int>();
-    List<int> months = new List<int>();
     
     protected override async Task OnInitializedAsync()
     {
         for (var i = 1390; i <= 1410; i++)
         {
             years.Add(i);
-        }
-        for (var i = 1; i <= 12; i++)
-        {
-            months.Add(i);
         }
         var allUsers = await UserService.GetAll();
         allUsers.ForEach(u => users.Add($"{u.EmployeeCode} - {u.Name}"));
@@ -78,14 +81,13 @@
     private bool resetValueOnEmptyText;
     private bool coerceText;
     private bool coerceValue;
-    private string SelectedUser;
     private List<string> users = new();
     
 
     private async Task<IEnumerable<string>> Search1(string value)
     {
         // if text is null or empty, show complete list
-        if (string.IsNullOrEmpty(value) || value.Length <= 2)
+        if (string.IsNullOrEmpty(value) || value.Length <= 1)
             return new List<string>();
         return users.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
@@ -96,9 +98,7 @@
 
     private void UploadFiles(InputFileChangeEventArgs e)
     {
-        //If SuppressOnChangeWhenInvalid is false, perform your validations here
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        //TODO upload the files to the server
     }
 
     FileModel model = new();
@@ -108,17 +108,7 @@
         await form.Validate();
         if (form.IsValid)
         {
-
-            // string[] folders = model.Name.Split("-");
-            // var path = Path.Combine(WebHostEnvironment.WebRootPath, "financial", folders[0], folders[1], folders[2]);
-            // // Directory.CreateDirectory(path);
-            // using (var fileStream = model.File.OpenReadStream(maxAllowedSize: 1024 * 1024 * 10))
-            // using (var fileWriteStream = new FileStream(path, FileMode.Create))
-            // {
-            //     await fileStream.CopyToAsync(fileWriteStream);
-            // }
-            // MudDialog.Close();
-            int EmployeeCode = int.Parse(SelectedUser.Split(" - ")[0]);
+            int EmployeeCode = int.Parse(model.Code_Name.Split(" - ")[0]);
             var checkResult = await UserService.CheckEmployeeCodes(new List<int> { EmployeeCode });
             if (checkResult != null && checkResult.Contains(EmployeeCode))
             {
@@ -144,7 +134,6 @@
             {
                 Snackbar.Add("خطای غیر منتظره", Severity.Error);
             }
-
         }
     }
 

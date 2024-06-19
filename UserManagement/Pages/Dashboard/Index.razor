@@ -9,14 +9,37 @@
 @inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
 @inject IExternalAuthService AuthService
+@inject DateHelper DateHelper
 
 <MudTable T="FileModel" Items="@allFiles" Filter="new Func<FileModel, bool>(FilterFunc)"
           SortLabel="Sort By">
     <ToolBarContent>
         <MudText Typo="Typo.h6">فایل های من</MudText>
         <MudSpacer />
-        <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField>
-        <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField>
+        @* <MudTextField @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField> *@
+        @* <MudTextField @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField> *@
+        <MudSelect Class="mb-3 mx-5" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Year">
+            <MudSelectItem Value="String.Empty">همه سال ها</MudSelectItem>
+            @foreach (var y in years)
+            {
+            <MudSelectItem Value="@y.ToString()">@(y)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect Class="mb-3 mx-5" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Month">
+            <MudSelectItem Value="String.Empty">همه ماه ها</MudSelectItem>
+            <MudSelectItem Value="1.ToString()">فروردین</MudSelectItem>
+            <MudSelectItem Value="2.ToString()">اردیبهشت</MudSelectItem>
+            <MudSelectItem Value="3.ToString()">خرداد</MudSelectItem>
+            <MudSelectItem Value="4.ToString()">تیر</MudSelectItem>
+            <MudSelectItem Value="5.ToString()">مرداد</MudSelectItem>
+            <MudSelectItem Value="6.ToString()">شهریور</MudSelectItem>
+            <MudSelectItem Value="7.ToString()">مهر</MudSelectItem>
+            <MudSelectItem Value="8.ToString()">آبان</MudSelectItem>
+            <MudSelectItem Value="9.ToString()">آذر</MudSelectItem>
+            <MudSelectItem Value="10.ToString()">دی</MudSelectItem>
+            <MudSelectItem Value="11.ToString()">بهمن</MudSelectItem>
+            <MudSelectItem Value="12.ToString()">اسفند</MudSelectItem>
+        </MudSelect>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
@@ -34,7 +57,7 @@
     <RowTemplate>
         <MudTd DataLabel="نام">@context.Name</MudTd>
         <MudTd DataLabel="سال">@context.Year</MudTd>
-        <MudTd DataLabel="ماه">@context.Month</MudTd>
+        <MudTd DataLabel="ماه">@DateHelper.intToMonthName(context.Month)</MudTd>
         <MudTd dir="ltr">
             <MudButton OnClick="@(() => ShowPdf(context))" Color="Color.Error">
                 <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error" />
@@ -51,14 +74,19 @@
 
 
 @code {
-    public int? Year;
-    public int? Month;
+    public string? Year;
+    public string? Month;
+    List<int> years = new();
     int EmployeeCode;
     List<FileModel> allFiles = new();
 
     protected override async Task OnInitializedAsync()
     {
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        for (var i = 1390; i <= 1410; i++)
+        {
+            years.Add(i);
+        }
         var user = await AuthService.UserAuthenticated();
         // if (authState.User is null)
         //     return;
@@ -78,10 +106,10 @@
 
     private bool FilterFunc(FileModel element)
     {
-        string year = Year?.ToString() ?? "";
-        string month = Month?.ToString() ?? "";
+        string year = Year ?? "";
+        string month = Month ?? "";
         if (element.Year.ToString().Contains(year) &&
-            element.Month.ToString().Contains(month)
+            (element.Month.ToString().Equals(month) || month == "")
         )
             return true;
         return false;

@@ -12,4 +12,6 @@ public class FileModel
     public IBrowserFile? File { get; set; }
 
     public string? Name { get; set; }
+    public string? Code_Name { get; set; }
+
 }

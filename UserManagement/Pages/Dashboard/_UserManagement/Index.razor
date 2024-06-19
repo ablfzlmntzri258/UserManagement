@@ -80,7 +80,6 @@
     protected override async Task OnInitializedAsync()
     {
         Users = await UserService.GetAll();
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
     }
     
 

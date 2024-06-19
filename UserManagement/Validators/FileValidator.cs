@@ -8,8 +8,9 @@ public class FileModelFluentValidator : AbstractValidator<FileModel>
 {
     public FileModelFluentValidator()
     {
-        RuleFor(x => x.EmployeeCode).NotEmpty();
-        RuleFor(x => x.Year).NotEmpty().
+        RuleFor(x => x.EmployeeCode).NotEmpty().WithMessage("فیلد اجباری");
+        RuleFor(x => x.Code_Name).NotEmpty().WithMessage("فیلد اجباری");
+        RuleFor(x => x.Year).NotEmpty().WithMessage("فیلد اجباری").
             InclusiveBetween(1390, 1410);
         RuleFor(x => x.Month).NotEmpty().
             InclusiveBetween(1, 12);

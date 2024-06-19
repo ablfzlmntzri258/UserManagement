@@ -1,4 +1,5 @@
 ﻿@page "/dashboard/financial-management"
+@using Microsoft.IdentityModel.Tokens
 @using UserManagement.Services
 @using UserManagement.Helpers
 @layout Shared.DashboardLayout
@@ -9,6 +10,7 @@
 @inject FileHelper fileHelper
 @inject PDFHelper PDFHelper
 @inject IJSRuntime JsRuntime
+@inject DateHelper DateHelper
 
 
 <AuthorizeView Roles="admin, financial" Context="userManagementContext">
@@ -22,17 +24,47 @@
                   SortLabel="Sort By">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">فایل ها</MudText>
-                <MudSpacer />
-                <MudTextField Immediate=true @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField>
-                <MudTextField Immediate=true @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField>
-                <MudTextField Immediate=true @bind-Value="EmplyoeeCode" InputType="InputType.Number" Placeholder="کد کارمند" Class="mt-0 mx-5"></MudTextField>
+                <MudSpacer/>
+                @* <MudTextField Immediate=true @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField> *@
+                @* <MudTextField Immediate=true @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField> *@
+                <MudSelect Class="mb-3 mx-5" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Year">
+                    <MudSelectItem Value="String.Empty">همه سال ها</MudSelectItem>
+                    @foreach (var y in years)
+                    {
+                        <MudSelectItem Value="@y.ToString()">@(y)</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect Class="mb-3 mx-5" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Month">
+                    <MudSelectItem Value="String.Empty">همه ماه ها</MudSelectItem>
+                    <MudSelectItem Value="1.ToString()">فروردین</MudSelectItem>
+                    <MudSelectItem Value="2.ToString()">اردیبهشت</MudSelectItem>
+                    <MudSelectItem Value="3.ToString()">خرداد</MudSelectItem>
+                    <MudSelectItem Value="4.ToString()">تیر</MudSelectItem>
+                    <MudSelectItem Value="5.ToString()">مرداد</MudSelectItem>
+                    <MudSelectItem Value="6.ToString()">شهریور</MudSelectItem>
+                    <MudSelectItem Value="7.ToString()">مهر</MudSelectItem>
+                    <MudSelectItem Value="8.ToString()">آبان</MudSelectItem>
+                    <MudSelectItem Value="9.ToString()">آذر</MudSelectItem>
+                    <MudSelectItem Value="10.ToString()">دی</MudSelectItem>
+                    <MudSelectItem Value="11.ToString()">بهمن</MudSelectItem>
+                    <MudSelectItem Value="12.ToString()">اسفند</MudSelectItem>
+                </MudSelect>
+                <MudAutocomplete Class="mb-3 mx-5" Margin="Margin.None" T="string" Label="کاربران" @bind-Value="Code_Name" SearchFunc="@Search1"
+                                 ResetValueOnEmptyText="@resetValueOnEmptyText"
+                                 CoerceText="@coerceText" CoerceValue="@coerceValue"
+                                 AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary"
+                                 Variant="Variant.Outlined"/>
+                @if(!Code_Name.IsNullOrEmpty())
+                {
+                    <MudButton OnClick="ShowAllEmployees" Color="Color.Secondary" Variant="Variant.Filled">همه کارمندان</MudButton>
+                }
             </ToolBarContent>
             <HeaderContent>
                 <MudTh>
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<FileModel, object>(x => x.Name)">نام</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.EmployeeCode)">کد کارمند</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Code_Name)">کد و نام کارمند</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<FileModel, object>(x => x.Year)">سال</MudTableSortLabel>
@@ -45,20 +77,20 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="نام">@context.Name</MudTd>
-                <MudTd DataLabel="کد کارمند">@context.EmployeeCode</MudTd>
+                <MudTd DataLabel="کد و نام کارمند">@context.Code_Name</MudTd>
                 <MudTd DataLabel="سال">@context.Year</MudTd>
-                <MudTd DataLabel="ماه">@context.Month</MudTd>
+                <MudTd DataLabel="ماه">@DateHelper.intToMonthName(context.Month)</MudTd>
                 <MudTd dir="ltr">
                     <MudButton OnClick="@(() => ShowPdf(context))" Color="Color.Error">
-                        <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error" />
+                        <MudIcon Icon="@Icons.Material.Filled.SimCardDownload" Color="Color.Error"/>
                     </MudButton>
                 </MudTd>
             </RowTemplate>
             <PagerContent>
-                <MudTablePager />
+                <MudTablePager/>
             </PagerContent>
             <EditButtonContent Context="button">
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
             </EditButtonContent>
         </MudTable>
     </Authorized>
@@ -68,35 +100,60 @@
 </AuthorizeView>
 
 
-
-
 @code {
-    public int? Year;
-    public int? Month;
-    public int? EmplyoeeCode;
+    public string? Year;
+    public string? Month;
+    public string? Code_Name;
     List<FileModel> allFiles = new();
+    List<string> users = new();
+    List<int> years = new();
 
-    protected override void OnInitialized()
+    private void ShowAllEmployees()
     {
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        Code_Name = String.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
         allFiles = fileHelper.GetFiles();
+        for (var i = 1390; i <= 1410; i++)
+        {
+            years.Add(i);
+        }
+
+        var allUsers = await UserService.GetAll();
+        allUsers.ForEach(u => users.Add($"{u.EmployeeCode} - {u.Name}"));
+        allFiles.ForEach(f => { f.Code_Name = users.FirstOrDefault(u => f.EmployeeCode.ToString() == u.Split(" - ")[0]) ?? "نامشخص"; });
+    }
+
+    private bool resetValueOnEmptyText;
+    private bool coerceText;
+    private bool coerceValue;
+
+    private async Task<IEnumerable<string>> Search1(string value)
+    {
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value) || value.Length <= 1)
+            return new List<string>();
+        return users.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
 
     private bool FilterFunc(FileModel element)
     {
-        string year = Year?.ToString() ?? "";
-        string month = Month?.ToString() ?? "";
-        string employeeCode = EmplyoeeCode?.ToString() ?? "";
+        string year = Year ?? "";
+        string month = Month ?? "";
+        string code_name = Code_Name ?? "";
+        string elementCodeName = element.Code_Name ?? "";
         if (element.Year.ToString().Contains(year) &&
-            element.Month.ToString().Contains(month) &&
-            element.EmployeeCode.ToString().Contains(employeeCode)
-        )
+            (element.Month.ToString().Equals(month) || month == "") &&
+            (elementCodeName.Equals(code_name) || code_name == "")
+           )
             return true;
         return false;
     }
 
-    DialogOptions dialogOptions = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+    DialogOptions dialogOptions = new DialogOptions { CloseOnEscapeKey = true, Position = DialogPosition.Center, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
 
     private async void ShowSingleAddDialog()
     {
@@ -110,6 +167,7 @@
             StateHasChanged();
         }
     }
+
     private async void ShowMultipleAddDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
@@ -121,6 +179,7 @@
             StateHasChanged();
         }
     }
+
     private async void ShowMultipleAddWithDateDialog()
     {
         DialogParameters dialogParameters = new DialogParameters();
@@ -135,7 +194,7 @@
 
     private async void ShowPdf(FileModel file)
     {
-        PDFHelper.OpenNewTab(JsRuntime ,$"{file.EmployeeCode}\\{file.Year}\\{file.Month}\\{file.Name}");
+        PDFHelper.OpenNewTab(JsRuntime, $"{file.EmployeeCode}\\{file.Year}\\{file.Month}\\{file.Name}");
     }
-    
+
 }

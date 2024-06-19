@@ -91,13 +91,13 @@
         var EmployeeCodes = files.Where(file =>
         {
             int ParsedInt;
-            return int.TryParse(file.Name.Replace(".pdf", ""), out ParsedInt) && ParsedInt > 0;
+            return file.Name.EndsWith(".pdf") && int.TryParse(file.Name.Replace(".pdf", ""), out ParsedInt) && ParsedInt > 0;
         }).Select(file => int.Parse(file.Name.Replace(".pdf", ""))).ToList();
         var checkedEmployeeCodes = await UserService.CheckEmployeeCodes(EmployeeCodes);
         foreach (var file in files)
         {
             int ParsedInt;
-            if (int.TryParse(file.Name.Replace(".pdf", ""), out ParsedInt) && ParsedInt > 0 && checkedEmployeeCodes.Contains(int.Parse(file.Name.Replace(".pdf", ""))))
+            if (file.Name.EndsWith(".pdf") && int.TryParse(file.Name.Replace(".pdf", ""), out ParsedInt) && ParsedInt > 0 && checkedEmployeeCodes.Contains(int.Parse(file.Name.Replace(".pdf", ""))))
             {
                 this.files.Add(file);
             }
@@ -109,7 +109,7 @@
 
         StateHasChanged();
         if (incorrectFileNames.Count > 0)
-            Snackbar.Add("فایل های زیر به دلیل نام غیر مجاز قابل اضافه شدن نیستند: <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
+            Snackbar.Add("فایل های زیر به دلیل نام یا فرمت غیر مجاز قابل اضافه شدن نیستند: <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
     }
 
 

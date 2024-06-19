@@ -59,13 +59,13 @@
     private async void AddFiles(IReadOnlyList<IBrowserFile> files)
     {
         List<string> incorrectFileNames = new();
-        var EmployeeCodes = files.Where(file => ValidationRules.IsFileNameValid(file.Name.Replace(".pdf", "")))
+        var EmployeeCodes = files.Where(file => ValidationRules.IsFileNameValid(file.Name))
         .Select(file => int.Parse(file.Name.Split("-")[0])).ToList();
         var checkedEmployeeCodes = await UserService.CheckEmployeeCodes(EmployeeCodes);
         if (checkedEmployeeCodes == null) return;
         foreach (var file in files)
         {
-            if (ValidationRules.IsFileNameValid(file.Name.Replace(".pdf", "")) && checkedEmployeeCodes.Contains(int.Parse(file.Name.Split("-")[0])))
+            if (ValidationRules.IsFileNameValid(file.Name) && checkedEmployeeCodes.Contains(int.Parse(file.Name.Split("-")[0])))
             {
                 this.files.Add(file);
             }
@@ -76,7 +76,7 @@
         }
         StateHasChanged();
         if (incorrectFileNames.Count > 0)
-            Snackbar.Add("فایل های زیر به دلیل نام غیر مجاز قابل اضافه شدن نیستند: <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
+            Snackbar.Add("فایل های زیر به دلیل نام یا فرمت غیر مجاز قابل اضافه شدن نیستند: <br>" + string.Join("<br>", incorrectFileNames), Severity.Error);
     }
 
 

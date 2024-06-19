@@ -28,14 +28,14 @@
                 @* <MudTextField Immediate=true @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField> *@
                 @* <MudTextField Immediate=true @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField> *@
                 <MudSelect Class="mb-3 mx-5" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Year">
-                    <MudSelectItem Value=@("")>همه سال ها</MudSelectItem>
+                    <MudSelectItem Value=@("all")>همه سال ها</MudSelectItem>
                     @foreach (var y in years)
                     {
                         <MudSelectItem Value="@y.ToString()">@(y)</MudSelectItem>
                     }
                 </MudSelect>
                 <MudSelect Class="mb-3 mx-5" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Month">
-                    <MudSelectItem Value=@("")>همه ماه ها</MudSelectItem>
+                    <MudSelectItem Value=@("all")>همه ماه ها</MudSelectItem>
                     <MudSelectItem Value=@("1") >فروردین</MudSelectItem>
                     <MudSelectItem Value=@("2") >اردیبهشت</MudSelectItem>
                     <MudSelectItem Value=@("3") >خرداد</MudSelectItem>
@@ -101,16 +101,16 @@
 
 
 @code {
-    public string? Year;
-    public string? Month;
-    public string? Code_Name;
+    public string? Year = "all";
+    public string? Month = "all";
+    public string? Code_Name = "";
     List<FileModel> allFiles = new();
     List<string> users = new();
     List<int> years = new();
 
     private void ShowAllEmployees()
     {
-        Code_Name = String.Empty;
+        Code_Name = "";
     }
 
     protected override async Task OnInitializedAsync()
@@ -141,12 +141,12 @@
 
     private bool FilterFunc(FileModel element)
     {
-        string year = Year ?? "";
-        string month = Month ?? "";
+        string year = Year ?? "all";
+        string month = Month ?? "all";
         string code_name = Code_Name ?? "";
         string elementCodeName = element.Code_Name ?? "";
-        if (element.Year.ToString().Contains(year) &&
-            (element.Month.ToString().Equals(month) || month == "") &&
+        if ((element.Year.ToString().Equals(year) || year == "all" ) &&
+            (element.Month.ToString().Equals(month) || month == "all") &&
             (elementCodeName.Equals(code_name) || code_name == "")
            )
             return true;

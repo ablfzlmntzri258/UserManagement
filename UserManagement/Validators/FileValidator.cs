@@ -12,19 +12,20 @@ public class FileModelFluentValidator : AbstractValidator<FileModel>
         RuleFor(x => x.Code_Name).NotEmpty().WithMessage("فیلد اجباری");
         RuleFor(x => x.Year).NotEmpty().WithMessage("فیلد اجباری").
             InclusiveBetween(1390, 1410);
-        RuleFor(x => x.Month).NotEmpty().
+        RuleFor(x => x.Month).NotEmpty().WithMessage("فیلد اجباری").
             InclusiveBetween(1, 12);
         RuleFor(x => x.File)
             .NotEmpty().WithMessage("فایل انتخاب نشده است");
         When(x => x.File != null, () =>
         {
             RuleFor(x => x.File.Size).LessThanOrEqualTo(10485760).WithMessage("حداکثر حجم فایل میتواند ده مگابایت باشد");
+            RuleFor(x => x.File.Name).Must(name => name.EndsWith(".pdf")).WithMessage("فرمت فایل باید pdf باشد");
         });
     }
 
     public bool IsFileNameValid(string value)
     {
-        var regex = new Regex(@"^(1[0-9]*|[2-9][0-9]*)-(13[9][0-9]|14[0-9]{2}|1500)-([1-9]|1[0-2])$");
+        var regex = new Regex(@"^(1[0-9]*|[2-9][0-9]*)-(13[9][0-9]|14[0-9]{2}|1500)-([1-9]|1[0-2])\.pdf$");
         return regex.IsMatch(value);
     }
     

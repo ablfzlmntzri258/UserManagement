@@ -11,8 +11,10 @@
 @using UserManagement.Shared.Models
 @using UserManagement.Helpers
 @using UserManagement.Validators
+@using Severity = MudBlazor.Severity
 @inject NavigationManager NavigationManager
 @inject HashHelper HashHelper
+@inject ISnackbar Snackbar
 
 <AuthorizeView Context="LoginContext">
     <Authorized>
@@ -68,13 +70,10 @@
             if (result.Item1)
             {
                 NavigationManager.NavigateTo($"/logincallback?token={result.Item2}", true);
-                //httpContextAccessor.HttpContext.Response.Redirect("/logincallback",true,true);
-                // navigationManager.NavigateTo("/login-callback");
-                // navigationManager.NavigateTo("/dashboard");
             }
             else
             {
-                JS.InvokeVoidAsync("alert", "Login Failed!");
+                Snackbar.Add("اطلاعات وارد شده صحیح نیست", Severity.Error);
             }
         }
     }

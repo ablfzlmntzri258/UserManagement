@@ -29,7 +29,7 @@ namespace UserManagement.Services
         Task<List<int>> CheckEmployeeCodes(List<int> emplyoeeCodes);
         Task<Tuple<bool, string>> Login(UserVM userAuthDto);
         Task LogOut();
-
+        Task<ApiResponse> ChangePassword(ChangePasswordForm passwords);
 
     }
     public class UserService : IUserService
@@ -80,12 +80,19 @@ namespace UserManagement.Services
         public async Task<Tuple<bool, string>> Login(UserVM userAuthDto)
         {
             var responseUserAuthDto = await _httpService.PostAsync<UserVM, TokenModel>("api/auth/login", userAuthDto);
-            if (responseUserAuthDto is not null)
+            if (responseUserAuthDto.IsAuthenticated)
             {
                 //AuthenticateUser(responseUserAuthDto.AccessToken);
                 return new Tuple<bool, string>(true, responseUserAuthDto.AccessToken);
             }
             return new Tuple<bool, string>(false, "");
+        }
+        
+        
+        public async Task<ApiResponse> ChangePassword(ChangePasswordForm passwords)
+        {
+            Console.WriteLine(passwords.OldPass);
+            return await _httpService.PostAsync<ChangePasswordForm, ApiResponse>("api/user/changepassword", passwords);
         }
         
 

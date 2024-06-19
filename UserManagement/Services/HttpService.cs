@@ -107,7 +107,6 @@ public class HttpService
 
             var response = await _httpClient.PostAsync(uri, content);
             // response.EnsureSuccessStatusCode();
-
             string? jsonResponse = await response.Content.ReadAsStringAsync();
             var deserializedResponse = JsonSerializer.Deserialize<TResult>(jsonResponse, _serializerOptions);
 

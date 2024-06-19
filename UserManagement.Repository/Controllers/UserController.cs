@@ -157,5 +157,36 @@ public class UserController : Controller
         return Ok(userRepository.CheckEmployeeCodes(employeeCodes));
     }
 
+    
+    [HttpPost("changepassword")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordForm passwordForm)
+    {
+        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "-1";
+        User user = userRepository.GetById(int.Parse(userId));
+        if (passwordForm.OldPass != user.Password)
+        {
+            return BadRequest(new ApiResponse()
+            {
+                Success = false,
+                ErrorMessage = "رمز قدیمی اشتباه است"
+            });
+        }
+
+        if (passwordForm.NewPass != passwordForm.NewPassConfirmation)
+        {
+            return BadRequest(new ApiResponse()
+            {
+                Success = false,
+                ErrorMessage = "رمز جدید با تایید آن برابر نیست"
+            });
+        }
+
+        user.Password = passwordForm.NewPass;
+        await userRepository.Update(user);
+        return Ok(new ApiResponse()
+        {
+            Success = true,
+        });
+    }
 
 }

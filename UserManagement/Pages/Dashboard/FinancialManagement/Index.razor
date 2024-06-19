@@ -28,26 +28,26 @@
                 @* <MudTextField Immediate=true @bind-Value="Year" InputType="InputType.Number" Placeholder="سال" Class="mt-0 mx-5"></MudTextField> *@
                 @* <MudTextField Immediate=true @bind-Value="Month" InputType="InputType.Number" Placeholder="ماه" Class="mt-0 mx-5"></MudTextField> *@
                 <MudSelect Class="mb-3 mx-5" Label="سال" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Year">
-                    <MudSelectItem Value="String.Empty">همه سال ها</MudSelectItem>
+                    <MudSelectItem Value=@("")>همه سال ها</MudSelectItem>
                     @foreach (var y in years)
                     {
                         <MudSelectItem Value="@y.ToString()">@(y)</MudSelectItem>
                     }
                 </MudSelect>
                 <MudSelect Class="mb-3 mx-5" Label="ماه" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="Month">
-                    <MudSelectItem Value="String.Empty">همه ماه ها</MudSelectItem>
-                    <MudSelectItem Value="1.ToString()">فروردین</MudSelectItem>
-                    <MudSelectItem Value="2.ToString()">اردیبهشت</MudSelectItem>
-                    <MudSelectItem Value="3.ToString()">خرداد</MudSelectItem>
-                    <MudSelectItem Value="4.ToString()">تیر</MudSelectItem>
-                    <MudSelectItem Value="5.ToString()">مرداد</MudSelectItem>
-                    <MudSelectItem Value="6.ToString()">شهریور</MudSelectItem>
-                    <MudSelectItem Value="7.ToString()">مهر</MudSelectItem>
-                    <MudSelectItem Value="8.ToString()">آبان</MudSelectItem>
-                    <MudSelectItem Value="9.ToString()">آذر</MudSelectItem>
-                    <MudSelectItem Value="10.ToString()">دی</MudSelectItem>
-                    <MudSelectItem Value="11.ToString()">بهمن</MudSelectItem>
-                    <MudSelectItem Value="12.ToString()">اسفند</MudSelectItem>
+                    <MudSelectItem Value=@("")>همه ماه ها</MudSelectItem>
+                    <MudSelectItem Value=@("1") >فروردین</MudSelectItem>
+                    <MudSelectItem Value=@("2") >اردیبهشت</MudSelectItem>
+                    <MudSelectItem Value=@("3") >خرداد</MudSelectItem>
+                    <MudSelectItem Value=@("4") >تیر</MudSelectItem>
+                    <MudSelectItem Value=@("5") >مرداد</MudSelectItem>
+                    <MudSelectItem Value=@("6") >شهریور</MudSelectItem>
+                    <MudSelectItem Value=@("7") >مهر</MudSelectItem>
+                    <MudSelectItem Value=@("8") >آبان</MudSelectItem>
+                    <MudSelectItem Value=@("9") >آذر</MudSelectItem>
+                    <MudSelectItem Value=@("10")>دی</MudSelectItem>
+                    <MudSelectItem Value=@("11")>بهمن</MudSelectItem>
+                    <MudSelectItem Value=@("12")>اسفند</MudSelectItem>
                 </MudSelect>
                 <MudAutocomplete Class="mb-3 mx-5" Margin="Margin.None" T="string" Label="کاربران" @bind-Value="Code_Name" SearchFunc="@Search1"
                                  ResetValueOnEmptyText="@resetValueOnEmptyText"

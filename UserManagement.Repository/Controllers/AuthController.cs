@@ -152,7 +152,6 @@ public class AuthController : Controller
         return principal;
 
     }
-    
     // [HttpGet("logout")]
     // public async Task LogOut()
     // {
